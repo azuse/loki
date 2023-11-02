@@ -408,10 +408,18 @@ func (a *S3ObjectClient) List(ctx context.Context, prefix, delimiter string) ([]
 
 	for i := range a.bucketNames {
 		err := loki_instrument.TimeRequest(ctx, "S3.List", s3RequestDuration, instrument.ErrorCode, func(ctx context.Context) error {
+			var delimiterToUse *string
+
+			if delimiter == "" {
+				delimiterToUse = nil
+			} else {
+				delimiterToUse = aws.String(delimiter)
+			}
+			
 			input := s3.ListObjectsV2Input{
 				Bucket:    aws.String(a.bucketNames[i]),
 				Prefix:    aws.String(prefix),
-				Delimiter: aws.String(delimiter),
+				Delimiter: delimiterToUse,
 			}
 
 			for {
